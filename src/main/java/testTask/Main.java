@@ -55,7 +55,7 @@ public class Main {
         for (Map.Entry<String, List<Integer>> entry : directMap.entrySet()) {
             if (proceed.contains(entry.getKey())) continue;
             Set<Integer> group = new HashSet<>();
-            groups.add(recurse(entry.getValue(), group));
+            groups.add(findCollisions(entry.getValue(), group));
         }
 
         long groupsMoreThanOne = groups.stream().filter(e -> e.size() > 1).count();
@@ -64,14 +64,14 @@ public class Main {
         printGroups(groupsMoreThanOne);
     }
 
-    public Set<Integer> recurse(List<Integer> rows, Set<Integer> group) {
+    public Set<Integer> findCollisions(List<Integer> rows, Set<Integer> group) {
         if (rows == null) return group;
         for (Integer row : rows) {
             for (int i = 0; i < container.get(row).size(); i++) {
                 String col = i + container.get(row).get(i);
                 if (proceed.contains(col)) continue;
                 proceed.add(col);
-                group = recurse(directMap.get(col), group);
+                group = findCollisions(directMap.get(col), group);
             }
             group.add(row);
         }
@@ -96,7 +96,6 @@ public class Main {
             writer.write(write.toString());
         }
         writer.close();
-        System.out.println("Групп более чем с одним элементом: " + groupsMoreThanOne);
     }
 
 }

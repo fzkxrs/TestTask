@@ -38,7 +38,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                test.Main
+                                testTask.Main
                             </mainClass>
                         </manifest>
                     </archive>

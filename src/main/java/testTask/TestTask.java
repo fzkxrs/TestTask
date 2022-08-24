@@ -6,56 +6,47 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Main {
-    Map<String, List<Integer>> directMap = new HashMap<>();
-    List<List<String>> container = new ArrayList<>();
+public class TestTask {
+    Map<String, List<Integer>> initialGrouping = new HashMap<>();
+    List<List<String>> linesContainer = new ArrayList<>();
     List<Set<Integer>> groups = new ArrayList<>();
-    Set<String> proceed = new HashSet<>();
-
-    public static void main(String[] args) throws IOException {
-        String path = "lng.txt";
-        if (args.length > 0) {
-            path = args[0];
-        }
-        Main main = new Main();
-        main.findGroups(path);
-    }
+    Set<String> viewed = new HashSet<>();
 
     public void findGroups(String path) throws IOException {
-        String regex = "\"[0-9]*\"[0-9]*\"";
-        Pattern isIncorrect = Pattern.compile(regex);
+        String incorrectStringRegex = "\"[0-9]*\"[0-9]*\"";
+        Pattern isIncorrect = Pattern.compile(incorrectStringRegex);
         String row;
         FileReader in = new FileReader(path);
-        BufferedReader br = new BufferedReader(in);
+        BufferedReader bufferedReader = new BufferedReader(in);
 
-        while ((row = br.readLine()) != null) {
-            if(row.equals("")) continue;
+        while ((row = bufferedReader.readLine()) != null) {
+            if (row.equals("")) continue;
             Matcher exclude = isIncorrect.matcher(row);
             if (exclude.find()) continue;
-            container.add(List.of(row.split(";")));
+            linesContainer.add(List.of(row.split(";")));
         }
-        br.close();
-        container = container.stream().distinct().collect(Collectors.toList());
+        bufferedReader.close();
+        linesContainer = linesContainer.stream().distinct().collect(Collectors.toList());
 
-        for (int i = 0; i < container.size(); i++) {
-            for (int j = 0; j < container.get(i).size(); j++) {
-                if (container.get(i).get(j).equals("\"\"")) continue;
+        for (int i = 0; i < linesContainer.size(); i++) {
+            for (int j = 0; j < linesContainer.get(i).size(); j++) {
+                if (linesContainer.get(i).get(j).equals("\"\"")) continue;
                 List<Integer> list = new ArrayList<>();
-                String pair = j + container.get(i).get(j);
-                if (directMap.containsKey(pair)) {
-                    list = directMap.get(pair);
+                String pair = j + linesContainer.get(i).get(j);
+                if (initialGrouping.containsKey(pair)) {
+                    list = initialGrouping.get(pair);
                     list.add(i);
                     continue;
                 }
                 list.add(i);
-                directMap.put(pair, list);
+                initialGrouping.put(pair, list);
             }
         }
 
-        for (Map.Entry<String, List<Integer>> entry : directMap.entrySet()) {
-            if (proceed.contains(entry.getKey())) continue;
+        for (Map.Entry<String, List<Integer>> entry : initialGrouping.entrySet()) {
+            if (viewed.contains(entry.getKey())) continue;
             Set<Integer> group = new HashSet<>();
-            groups.add(findCollisions(entry.getValue(), group));
+            groups.add(finalGrouping(entry.getValue(), group));
         }
 
         long groupsMoreThanOne = groups.stream().filter(e -> e.size() > 1).count();
@@ -64,14 +55,14 @@ public class Main {
         printGroups(groupsMoreThanOne);
     }
 
-    public Set<Integer> findCollisions(List<Integer> rows, Set<Integer> group) {
+    public Set<Integer> finalGrouping(List<Integer> rows, Set<Integer> group) {
         if (rows == null) return group;
         for (Integer row : rows) {
-            for (int i = 0; i < container.get(row).size(); i++) {
-                String col = i + container.get(row).get(i);
-                if (proceed.contains(col)) continue;
-                proceed.add(col);
-                group = findCollisions(directMap.get(col), group);
+            for (int i = 0; i < linesContainer.get(row).size(); i++) {
+                String col = i + linesContainer.get(row).get(i);
+                if (viewed.contains(col)) continue;
+                viewed.add(col);
+                group = finalGrouping(initialGrouping.get(col), group);
             }
             group.add(row);
         }
@@ -86,7 +77,7 @@ public class Main {
             StringBuilder write = new StringBuilder();
             write.append("Группа ").append(groupCounter++).append('\n');
             for (Integer num : group) {
-                Iterator<String> iterator = container.get(num).iterator();
+                Iterator<String> iterator = linesContainer.get(num).iterator();
                 while (iterator.hasNext()) {
                     write.append(iterator.next());
                     if (iterator.hasNext()) write.append(";");
